@@ -6,45 +6,44 @@
 #include "list.h"
 
 typedef enum Method {
-    OPTIONS,
-    GET,
-    HEAD,
-    POST,
-    PUT,
-    DELETE,
-    TRACE,
-    CONNECT,
-    UNKNOWN_METHOD,
+  OPTIONS,
+  GET,
+  HEAD,
+  POST,
+  PUT,
+  DELETE,
+  TRACE,
+  CONNECT,
+  UNKNOWN_METHOD,
 } Method;
 
 typedef struct Request {
-    Method method;
+  Method method;
 
-    char *path;
-    char *uri;
+  char *path;
+  char *uri;
 
-    ListCell *queryString;
-    ListCell *postBody;
-    ListCell *cookies;
-    ListCell *headers;
-
+  ListCell *queryString;
+  ListCell *postBody;
+  ListCell *cookies;
+  ListCell *headers;
 } Request;
 
 Request *requestNew(char *);
 void requestDel(Request *);
 
-#define EXACT_ROUTE(req, routeString)                         \
-    {                                                         \
-        char *route = routeString "\0";                       \
-        if (strncmp(req->uri, route, strlen(route) + 1) != 0) \
-            return NULL;                                      \
-    }
+#define EXACT_ROUTE(req, routeString)                     \
+  {                                                       \
+    char *route = routeString "\0";                       \
+    if (strncmp(req->uri, route, strlen(route) + 1) != 0) \
+      return NULL;                                        \
+  }
 
-#define ROUTE(req, routeString)                           \
-    {                                                     \
-        char *route = routeString;                        \
-        if (strncmp(req->uri, route, strlen(route)) != 0) \
-            return NULL;                                  \
-    }
+#define ROUTE(req, routeString)                       \
+  {                                                   \
+    char *route = routeString;                        \
+    if (strncmp(req->uri, route, strlen(route)) != 0) \
+      return NULL;                                    \
+  }
 
 #endif
