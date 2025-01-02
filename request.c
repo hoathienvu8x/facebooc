@@ -236,6 +236,13 @@ fail:
   return NULL;
 }
 
+bool requestIsUpgrade(Request * req) {
+  if (!req) return false;
+  char *bs = kvFindList(req->headers, "Sec-WebSocket-Key");
+  if (!bs) return false;
+  return true;
+}
+
 void requestDel(Request *req) {
   if (req->path)
     bsDel(req->path);

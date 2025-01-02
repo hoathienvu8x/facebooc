@@ -6,14 +6,15 @@
 
 KV *kvNew(char *key, char *value) {
   KV *kv = malloc(sizeof(KV));
-
-  kv->key = bsNew(key);
-  kv->value = bsNew(value);
-
+  if (kv) {
+    kv->key = bsNew(key);
+    kv->value = bsNew(value);
+  }
   return kv;
 }
 
 void kvDel(KV *kv) {
+  if (!kv) return;
   bsDel(kv->key);
   bsDel(kv->value);
   free(kv);
@@ -44,6 +45,7 @@ void kvPrintList(ListCell *list) {
 }
 
 char *kvFindList(ListCell *cell, char *key) {
+  if (!key) return NULL;
   while (cell) {
     if (!strcmp(((KV *) cell->value)->key, key))
       return ((KV *) cell->value)->value;

@@ -2,6 +2,7 @@
 #define REQUEST_H
 
 #include <string.h>
+#include <stdbool.h>
 
 #include "list.h"
 
@@ -30,6 +31,7 @@ typedef struct Request {
 } Request;
 
 Request *requestNew(char *);
+bool requestIsUpgrade(Request *);
 void requestDel(Request *);
 
 #define EXACT_ROUTE(req, routeString)                     \

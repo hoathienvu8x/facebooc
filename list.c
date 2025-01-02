@@ -4,18 +4,19 @@
 
 ListCell *listCons(void *value, size_t size, ListCell *next) {
   ListCell *cell = malloc(sizeof(ListCell));
+  if (cell) {
+    cell->next = next;
+    cell->value = malloc(size);
+    cell->size = size;
 
-  cell->next = next;
-  cell->value = malloc(size);
-  cell->size = size;
-
-  memcpy(cell->value, value, size);
-
+    memcpy(cell->value, value, size);
+  }
   return cell;
 }
 
 ListCell *listReverse(ListCell *cell) {
   ListCell *prev = NULL;
+  if (!cell) return prev;
   while (cell) {
     ListCell *next = cell->next;
     cell->next = prev;

@@ -11,6 +11,7 @@ Server *server = NULL;
 
 static void sig(int signum);
 static Response *home(Request *);
+static Response *ws_stream(Request *);
 static Response *notFound(Request *);
 
 int main(int argc, char **argv) {
@@ -34,6 +35,7 @@ int main(int argc, char **argv) {
   if (!server) return -1;
   serverAddHandler(server, notFound);
   serverAddHandler(server, home);
+  serverAddHandler(server, ws_stream);
 
   serverServe(server);
 
@@ -65,6 +67,21 @@ static Response *notFound(Request *req) {
   Response *response = responseNew();
   responseSetStatus(response, NOT_FOUND);
   responseSetBody(response, bsNew("404 Not Found"));
+
+  return response;
+}
+
+static Response *ws_stream(Request *req) {
+  Response *response;
+  EXACT_ROUTE(req, "/stream");
+  if (req->method != GET || !requestIsUpgrade(req)) {
+    goto bad_req;
+  }
+
+bad_req:
+  response = responseNew();
+  responseSetStatus(response, FORBIDDEN);
+  responseSetBody(response, bsNew("Forbidden!"));
 
   return response;
 }

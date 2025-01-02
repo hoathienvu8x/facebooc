@@ -163,6 +163,7 @@ static void resetOneShot(int epollfd, int fd) {
 }
 
 static void serverDelFd(Server *server, int fd) {
+  if (!server) return;
   #if defined(__linux__)
   if (epoll_ctl(server->priv, EPOLL_CTL_DEL, fd, NULL) < 0)
     perror("epoll_ctl");
@@ -176,9 +177,9 @@ static void serverDelFd(Server *server, int fd) {
 }
 
 static inline void handle(Server *server, int fd, struct sockaddr_in *addr) {
-  int nread;
+  int nread, is_done = 1;
   char buff[20480];
-
+  if (!server) return;
   if ((nread = recv(fd, buff, sizeof(buff), 0)) < 0) {
     if (errno == EAGAIN) {
       resetOneShot(server->priv, fd);
@@ -208,12 +209,19 @@ static inline void handle(Server *server, int fd, struct sockaddr_in *addr) {
       } else {
         LOG_REQUEST(addr, METHODS[req->method], req->path, response->status);
 
+        if (response->status == SWITCHING_PROTOCOLS)
+          is_done = 0;
+
         responseWrite(response, fd);
         responseDel(response);
       }
+      if (requestIsUpgrade(req) && is_done == 0)
+        return;
+
       requestDel(req);
     }
   }
+  printf("--> close connecion\n");
   serverDelFd(server, fd);
   close(fd);
 }
@@ -223,7 +231,7 @@ void serverServe(Server *server) {
   WSADATA wsaData;
   WSAStartup(2, &wsaData);
   #endif
-
+  if (!server) return;
   int sock = makeSocket(server->port);
   int newSock, nfds, tmpfd;
   struct sockaddr_in addr;

@@ -5,25 +5,27 @@
 #include "bs.h"
 
 char *bsNew(const char *str) {
-  size_t len = strlen(str);
-  char *bs = malloc(sizeof(char) * (BS_HEADER_LEN + len + 1));
-  assert(bs);
-  bs += BS_HEADER_LEN;
+  size_t len;
+  char *bs = NULL;
+  if (!str || (len = strlen(str)) == 0) return NULL;
+  bs = malloc(sizeof(char) * (BS_HEADER_LEN + len + 1));
+  if (bs) {
+    bs += BS_HEADER_LEN;
 
-  strcpy(bs, str);
-  bsSetLen(bs, len);
-
+    strcpy(bs, str);
+    bsSetLen(bs, len);
+  }
   return bs;
 }
 
 char *bsNewLen(char *buf, size_t len) {
   char *bs = malloc(sizeof(char) * (BS_HEADER_LEN + len + 1));
-  assert(bs);
-  bs += BS_HEADER_LEN;
+  if(bs) {
+    bs += BS_HEADER_LEN;
 
-  memcpy(bs, buf, len);
-  bsSetLen(bs, len);
-
+    memcpy(bs, buf, len);
+    bsSetLen(bs, len);
+  }
   return bs;
 }
 
@@ -31,16 +33,15 @@ char *bsCat(char *bs1, char *bs2) {
   size_t len1 = bsGetLen(bs1);
   size_t len2 = bsGetLen(bs2);
   size_t len = len1 + len2;
-
-  char *bs = malloc(sizeof(char) * (BS_HEADER_LEN + len + 1));
-  assert(bs);
-  bs += BS_HEADER_LEN;
-
-  strcpy(bs, bs1);
-  strcpy(bs + len1, bs2);
-
-  bsSetLen(bs, len);
-
+  char *bs = NULL;
+  if (len == 0) return NULL;
+  bs = malloc(sizeof(char) * (BS_HEADER_LEN + len + 1));
+  if (bs) {
+    bs += BS_HEADER_LEN;
+    strcpy(bs, bs1);
+    strcpy(bs + len1, bs2);
+    bsSetLen(bs, len);
+  }
   return bs;
 }
 
@@ -48,17 +49,15 @@ char *bsSubstr(char *orig, uint32_t beginning, int32_t end) {
   size_t len = bsGetLen(orig);
   size_t newLen = (end <= 0) ? len - beginning + end : end - beginning;
 
-  assert(newLen > 0);
-  assert(newLen <= len);
+  if (newLen <= 0) return NULL;
+  if (newLen > len) return NULL;
 
   char *bs = malloc(sizeof(char) * (BS_HEADER_LEN + newLen + 1));
-  assert(bs);
-  bs += BS_HEADER_LEN;
-
-  memcpy(bs, orig + beginning, newLen);
-
-  bsSetLen(bs, newLen);
-
+  if (bs) {
+    bs += BS_HEADER_LEN;
+    memcpy(bs, orig + beginning, newLen);
+    bsSetLen(bs, newLen);
+  }
   return bs;
 }
 
@@ -72,7 +71,7 @@ char *bsRandom(uint32_t len, char *suffix) {
   };
 
   char *bs = malloc(sizeof(char) * (BS_HEADER_LEN + len + 1));
-  assert(bs);
+  if(!bs) return NULL;
   bs += BS_HEADER_LEN;
 
   bsSetLen(bs, len);
@@ -128,10 +127,15 @@ void bsLCat(char **orig, char *s) {
 }
 
 void bsDel(char *bs) {
-  free(bs - BS_HEADER_LEN);
+  if (!bs) return;
+  if (bs - BS_HEADER_LEN)
+    free(bs - BS_HEADER_LEN);
+  else
+    free(bs);
 }
 
 void bsSetLen(char *bs, uint32_t len) {
+  if (!bs) return;
   *(bs + 0 - BS_HEADER_LEN) = len >> 24 & 0xFF;
   *(bs + 1 - BS_HEADER_LEN) = len >> 16 & 0xFF;
   *(bs + 2 - BS_HEADER_LEN) = len >> 8 & 0xFF;
