@@ -1,20 +1,19 @@
-#ifndef _WIN32
-#include <arpa/inet.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
-typedef int sockopt_t;
+#ifdef _WIN32
+  #define FD_SETSIZE 4096
+  #include <ws2tcpip.h>
+  #undef DELETE
+  #undef close
+  #define close(x) closesocket(x)
+  typedef char sockopt_t;
 #else
-#define FD_SETSIZE 4096
+  #include <arpa/inet.h>
+  #include <netinet/in.h>
+  #include <sys/select.h>
+  #include <sys/socket.h>
+  #include <sys/types.h>
+  typedef int sockopt_t;
+#endif
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -23,11 +22,13 @@ typedef int sockopt_t;
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
-#include <ws2tcpip.h>
-#undef DELETE
-#undef close
-#define close(x) closesocket(x)
-typedef char sockopt_t;
+
+#if defined(__linux__)
+  #include <sys/epoll.h>
+#elif defined(__APPLE__)
+  #include <sys/event.h>
+#else
+#error Unsupported platform
 #endif
 
 #include "bs.h"
@@ -54,14 +55,6 @@ typedef char sockopt_t;
 char *METHODS[8] = {
     "OPTIONS", "GET", "HEAD", "POST", "PUT", "DELETE", "TRACE", "CONNECT",
 };
-
-#if defined(__linux__)
-#include <sys/epoll.h>
-#elif defined(__APPLE__)
-#include <sys/event.h>
-#else
-#error Unsupported platform
-#endif
 
 Server *serverNew(uint16_t port)
 {
