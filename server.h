@@ -7,9 +7,9 @@
 #include "response.h"
 
 typedef struct Server {
-    unsigned int port;
-    uintptr_t priv;
-    ListCell *handlers;
+  unsigned int port;
+  uintptr_t priv;
+  ListCell *handlers;
 } Server;
 
 typedef Response *(*Handler)(Request *);

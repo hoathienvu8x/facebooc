@@ -8,139 +8,139 @@
 
 Template *templateNew(char *filename)
 {
-    Template *template = malloc(sizeof(Template));
+  Template *template = malloc(sizeof(Template));
 
-    template->filename = filename;
-    template->context = NULL;
+  template->filename = filename;
+  template->context = NULL;
 
-    return template;
+  return template;
 }
 
 void templateDel(Template *template)
 {
-    if (template->context)
-        kvDelList(template->context);
+  if (template->context)
+    kvDelList(template->context);
 
-    free(template);
+  free(template);
 }
 
 void templateSet(Template *template, char *key, char *value)
 {
-    template->context =
-        listCons(kvNew(key, value), sizeof(KV), template->context);
+  template->context =
+    listCons(kvNew(key, value), sizeof(KV), template->context);
 }
 
 char *templateRender(Template *template)
 {
-    Template *inc;
-    FILE *file = fopen(template->filename, "r");
-    char *res = bsNew("");
-    char *pos, *buff, *incBs, *val;
-    char *segment;
-    bool rep = false;
-    size_t len, readLen;
+  Template *inc;
+  FILE *file = fopen(template->filename, "r");
+  char *res = bsNew("");
+  char *pos, *buff, *incBs, *val;
+  char *segment;
+  bool rep = false;
+  size_t len, readLen;
 
-    if (!file) {
-        fprintf(stderr, "error: template '%s' not found\n", template->filename);
-        exit(1);
-    }
+  if (!file) {
+    fprintf(stderr, "error: template '%s' not found\n", template->filename);
+    exit(1);
+  }
 
-    fseek(file, 0, SEEK_END);
-    len = ftell(file);
-    rewind(file);
+  fseek(file, 0, SEEK_END);
+  len = ftell(file);
+  rewind(file);
 
-    buff = malloc(sizeof(char) * (len + 2));
-    readLen = fread(buff + 1, sizeof(char), len, file);
-    if (readLen != len) {
-        if (feof(file))
-            fprintf(stderr, "error: unexpected end of file in template '%s'\n", template->filename);
-        else
-            fprintf(stderr, "error: failed to read template '%s'\n", template->filename);
-        exit(1);
-    }
-    fclose(file);
+  buff = malloc(sizeof(char) * (len + 2));
+  readLen = fread(buff + 1, sizeof(char), len, file);
+  if (readLen != len) {
+    if (feof(file))
+      fprintf(stderr, "error: unexpected end of file in template '%s'\n", template->filename);
+    else
+      fprintf(stderr, "error: failed to read template '%s'\n", template->filename);
+    exit(1);
+  }
+  fclose(file);
 
-    buff[0] = ' ';
-    buff[len + 1] = '\0';
+  buff[0] = ' ';
+  buff[len + 1] = '\0';
 
-    // VARIABLES
-    segment = strtok_r(buff, "{\0", &pos);
-    assert(segment);
-    bsLCat(&res, segment + 1);
+  // VARIABLES
+  segment = strtok_r(buff, "{\0", &pos);
+  assert(segment);
+  bsLCat(&res, segment + 1);
 
-    for (;;) {
-        segment = strtok_r(NULL, "}\0", &pos);
+  for (;;) {
+    segment = strtok_r(NULL, "}\0", &pos);
 
-        if (!segment)
-            break;
+    if (!segment)
+      break;
 
-        if (*segment == '{') {
-            rep = true;
-            segment += 1;
-            val = kvFindList(template->context, segment);
-            if (val)
-                bsLCat(&res, val);
-        } else if (*segment == '%') {
-            rep = true;
-            segment += 1;
-            if (!strncmp(segment, "include", 7)) {
-                segment += 8;
-                segment[strlen(segment) - 1] = '\0';
+    if (*segment == '{') {
+      rep = true;
+      segment += 1;
+      val = kvFindList(template->context, segment);
+      if (val)
+        bsLCat(&res, val);
+    } else if (*segment == '%') {
+      rep = true;
+      segment += 1;
+      if (!strncmp(segment, "include", 7)) {
+        segment += 8;
+        segment[strlen(segment) - 1] = '\0';
 
-                inc = templateNew(segment);
-                inc->context = template->context;
-                incBs = templateRender(inc);
+        inc = templateNew(segment);
+        inc->context = template->context;
+        incBs = templateRender(inc);
 
-                bsLCat(&res, incBs);
-                bsDel(incBs);
-                free(inc);
-            } else if (!strncmp(segment, "when", 4)) {
-                char *spc;
+        bsLCat(&res, incBs);
+        bsDel(incBs);
+        free(inc);
+      } else if (!strncmp(segment, "when", 4)) {
+        char *spc;
 
-                segment += 5;
-                spc = strchr(segment, ' ');
-                *spc = '\0';
-                incBs = kvFindList(template->context, segment);
+        segment += 5;
+        spc = strchr(segment, ' ');
+        *spc = '\0';
+        incBs = kvFindList(template->context, segment);
 
-                if (incBs) {
-                    segment = spc + 1;
-                    spc = strchr(segment, ' ');
-                    *spc = '\0';
+        if (incBs) {
+          segment = spc + 1;
+          spc = strchr(segment, ' ');
+          *spc = '\0';
 
-                    if (!strcmp(incBs, segment)) {
-                        segment = spc + 1;
-                        segment[strlen(segment) - 1] = '\0';
+          if (!strcmp(incBs, segment)) {
+            segment = spc + 1;
+            segment[strlen(segment) - 1] = '\0';
 
-                        bsLCat(&res, segment);
-                    }
-                }
-            } else {
-                fprintf(stderr, "error: unknown exp {%%%s} in '%s'\n", segment,
-                        template->filename);
-                exit(1);
-            }
-        } else {
-            rep = false;
-
-            bsLCat(&res, "{");
+            bsLCat(&res, segment);
+          }
         }
+      } else {
+        fprintf(stderr, "error: unknown exp {%%%s} in '%s'\n", segment,
+            template->filename);
+        exit(1);
+      }
+    } else {
+      rep = false;
 
-        segment = strtok_r(NULL, "{\0", &pos);
-
-        if (!segment)
-            break;
-
-        if (rep) {
-            rep = false;
-            segment += 1;
-        } else {
-            bsLCat(&res, "}");
-        }
-
-        bsLCat(&res, segment);
+      bsLCat(&res, "{");
     }
 
-    free(buff);
+    segment = strtok_r(NULL, "{\0", &pos);
 
-    return res;
+    if (!segment)
+      break;
+
+    if (rep) {
+      rep = false;
+      segment += 1;
+    } else {
+      bsLCat(&res, "}");
+    }
+
+    bsLCat(&res, segment);
+  }
+
+  free(buff);
+
+  return res;
 }
