@@ -123,6 +123,7 @@ char *templateRender(Template *template)
       rep = false;
 
       bsLCat(&res, "{");
+      bsLCat(&res, segment);
     }
 
     segment = strtok_r(NULL, "{\0", &pos);
