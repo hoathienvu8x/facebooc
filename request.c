@@ -167,21 +167,21 @@ Request *requestNew(char *buff)
   TOK(buff, " \t");
 
   if (!strcmp(segment, "OPTIONS"))
-    request->method = OPTIONS;
+    request->method = METHOD_OPTIONS;
   else if (!strcmp(segment, "GET"))
-    request->method = GET;
+    request->method = METHOD_GET;
   else if (!strcmp(segment, "HEAD"))
-    request->method = HEAD;
+    request->method = METHOD_HEAD;
   else if (!strcmp(segment, "POST"))
-    request->method = POST;
+    request->method = METHOD_POST;
   else if (!strcmp(segment, "PUT"))
-    request->method = PUT;
+    request->method = METHOD_PUT;
   else if (!strcmp(segment, "DELETE"))
-    request->method = DELETE;
+    request->method = METHOD_DELETE;
   else if (!strcmp(segment, "TRACE"))
-    request->method = TRACE;
+    request->method = METHOD_TRACE;
   else if (!strcmp(segment, "CONNECT"))
-    request->method = CONNECT;
+    request->method = METHOD_CONNECT;
   else
     goto fail;
 

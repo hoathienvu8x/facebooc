@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <string.h>
+#ifndef _WIN32
 #include <sys/socket.h>
+#else
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
 #include <time.h>
 #include <unistd.h>
 

@@ -1,3 +1,11 @@
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <time.h>
+#include <unistd.h>
 #ifdef _WIN32
   #define FD_SETSIZE 4096
   #include <ws2tcpip.h>
@@ -13,16 +21,6 @@
   #include <sys/types.h>
   typedef int sockopt_t;
 #endif
-
-#include <errno.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <time.h>
-#include <unistd.h>
-
 #if defined(__linux__)
   #include <sys/epoll.h>
 #elif defined(__APPLE__)

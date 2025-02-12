@@ -15,6 +15,13 @@ OBJECTS = \
 OBJECTS := $(addprefix objects/,$(OBJECTS))
 EXECUTABLE = demo
 
+ifeq ($(platform),win)
+	CC = i686-w64-mingw32-gcc
+	CFLAGS += -I/usr/i686-w64-mingw32/include
+	LDFLAGS += -I/usr/i686-w64-mingw32/include -L/usr/i686-w64-mingw32/lib -s -lcomctl32 -lgdi32 -Wl,--subsystem,windows
+	EXECUTABLE = demo.exe
+endif
+
 all: objects $(EXECUTABLE)
 
 objects:

@@ -6,15 +6,15 @@
 #include "list.h"
 
 typedef enum Method {
-  OPTIONS,
-  GET,
-  HEAD,
-  POST,
-  PUT,
-  DELETE,
-  TRACE,
-  CONNECT,
-  UNKNOWN_METHOD,
+  METHOD_OPTIONS,
+  METHOD_GET,
+  METHOD_HEAD,
+  METHOD_POST,
+  METHOD_PUT,
+  METHOD_DELETE,
+  METHOD_TRACE,
+  METHOD_CONNECT,
+  UNKNOWN_METHOD
 } Method;
 
 typedef struct Request {
