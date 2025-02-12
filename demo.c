@@ -72,6 +72,9 @@ static Response *homePage(Request *req) {
   Response *response = responseNew();
   Template *template = templateNew("templates/home.html");
   responseSetStatus(response, OK);
+
+  templateSet(template, "ohcarol", "let us know");
+
   responseSetBody(response, templateRender(template));
   templateDel(template);
   return response;
