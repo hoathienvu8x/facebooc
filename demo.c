@@ -19,6 +19,7 @@ static void sig(int signum)
 
 static Response *notFound(Request *);
 static Response *homePage(Request *);
+static Response *apiHandle(Request *);
 
 int main(int argc, char **argv)
 {
@@ -42,6 +43,7 @@ int main(int argc, char **argv)
   serverAddHandler(server, notFound);
   serverAddStaticHandler(server);
   serverAddHandler(server, homePage);
+  serverAddHandler(server, apiHandle);
 
   serverServe(server);
   return 0;
@@ -66,5 +68,15 @@ static Response *homePage(Request *req) {
   responseSetStatus(response, OK);
   responseSetBody(response, templateRender(template));
   templateDel(template);
+  return response;
+}
+
+static Response *apiHandle(Request *req) {
+  EXACT_ROUTE(req, "/api");
+  Response *response = responseNew();
+  responseSetStatus(response, OK);
+  responseAddHeader(response, "Content-Type", "application/json");
+  char *js = bsNew("{\"data\":\"Hi there\"}");
+  responseSetBody(response, js);
   return response;
 }
