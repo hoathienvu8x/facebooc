@@ -16,6 +16,7 @@ char *bsRandom(uint32_t, char *);
 char *bsEscape(char *);
 char *bsNewline2BR(char *);
 void bsLCat(char **, char *);
+void bsNCat(char **, char *, size_t);
 void bsDel(char *);
 void bsSetLen(char *, uint32_t);
 uint32_t bsGetLen(char *);

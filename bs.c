@@ -121,8 +121,11 @@ char *bsEscape(char *bs)
 
 void bsLCat(char **orig, char *s)
 {
+  bsNCat(orig, s, strlen(s));
+}
+
+void bsNCat(char **orig, char *s, size_t lenS) {
   size_t lenO = bsGetLen(*orig);
-  size_t lenS = strlen(s);
   size_t len = lenO + lenS;
 
   *orig = (char *) realloc(*orig - BS_HEADER_LEN,
@@ -130,7 +133,7 @@ void bsLCat(char **orig, char *s)
   assert(*orig);
   *orig += BS_HEADER_LEN;
 
-  strcpy(*orig + lenO, s);
+  strncpy(*orig + lenO, s, lenS);
   bsSetLen(*orig, len);
 }
 
