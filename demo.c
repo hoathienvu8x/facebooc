@@ -21,6 +21,9 @@ static Response *notFound(Request *);
 static Response *homePage(Request *);
 static Response *apiHandle(Request *);
 
+static Response *playlistHandle(Request *);
+static Response *songHandle(Request *);
+
 int main(int argc, char **argv)
 {
   if (signal(SIGINT, sig) == SIG_ERR || signal(SIGTERM, sig) == SIG_ERR) {
@@ -44,6 +47,9 @@ int main(int argc, char **argv)
   serverAddStaticHandler(server);
   serverAddHandler(server, homePage);
   serverAddHandler(server, apiHandle);
+
+  serverAddHandler(server, playlistHandle);
+  serverAddHandler(server, songHandle);
 
   serverServe(server);
   return 0;
@@ -77,6 +83,26 @@ static Response *apiHandle(Request *req) {
   responseSetStatus(response, OK);
   responseAddHeader(response, "Content-Type", "application/json");
   char *js = bsNew("{\"data\":\"Hi there\"}");
+  responseSetBody(response, js);
+  return response;
+}
+
+static Response *playlistHandle(Request *req) {
+  EXACT_ROUTE(req, "/playlist");
+  Response *response = responseNew();
+  responseSetStatus(response, OK);
+  responseAddHeader(response, "Content-Type", "application/json");
+  char *js = bsNew("{\"data\":\"Hi from playlist\"}");
+  responseSetBody(response, js);
+  return response;
+}
+
+static Response *songHandle(Request *req) {
+  EXACT_ROUTE(req, "/song");
+  Response *response = responseNew();
+  responseSetStatus(response, OK);
+  responseAddHeader(response, "Content-Type", "application/json");
+  char *js = bsNew("{\"data\":\"Hi from song\"}");
   responseSetBody(response, js);
   return response;
 }

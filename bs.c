@@ -136,7 +136,11 @@ void bsLCat(char **orig, char *s)
 
 void bsDel(char *bs)
 {
-  free(bs - BS_HEADER_LEN);
+  if (!bs) return;
+  if (bs - BS_HEADER_LEN)
+    free(bs - BS_HEADER_LEN);
+  else
+    free(bs);
 }
 
 void bsSetLen(char *bs, uint32_t len)
