@@ -267,46 +267,61 @@ static void serverDelFd(Server *server, int fd)
 
 static inline void handle(Server *server, int fd, struct sockaddr_in *addr)
 {
-  int nread;
-  char buff[20480];
+  ssize_t rv = 0;
+  char buf[1024] = {0};
+  char *buff = bsNew("");
 
-  if ((nread = recv(fd, buff, sizeof(buff), 0)) < 0) {
+  do {
+    memset(buf, 0, sizeof(buf));
+    rv = recv(fd, buf, sizeof(buf), 0);
+    if (rv > 0) {
+      bsNCat(&buff, buf, rv);
+      if (rv < (ssize_t)sizeof(buf)) break;
+    }
+  } while (rv > 0 || errno == EINTR);
+
+  if (rv < 0) {
     if (errno == EAGAIN) {
       resetOneShot(server->priv, fd);
     } else {
       fprintf(stderr, "error: read failed\n");
     }
-  } else if (nread > 0) {
-    buff[nread] = '\0';
-
-    Request *req = requestNew(buff);
-
-    if (!req) {
-      send(fd, "HTTP/1.0 400 Bad Request\r\n\r\nBad Request", 39, 0);
-      LOG_400(addr);
-    } else {
-      ListCell *handler = server->handlers;
-      Response *response = NULL;
-
-      while (handler && !response) {
-        response = (*(HandlerP) handler->value)(req);
-        handler = handler->next;
-      }
-
-      if (!response) {
-        send(fd, "HTTP/1.0 404 Not Found\r\n\r\nNot Found!", 36, 0);
-        LOG_REQUEST(addr, METHODS[req->method], req->path, 404);
-      } else {
-        LOG_REQUEST(addr, METHODS[req->method], req->path,
-                response->status);
-
-        responseWrite(response, fd);
-        responseDel(response);
-      }
-
-      requestDel(req);
-    }
+    goto done;
   }
+
+  if (rv == 0 && bsGetLen(buff) == 0) {
+    goto done;
+  }
+
+  Request *req = requestNew(buff);
+  if (!req) {
+    send(fd, "HTTP/1.0 400 Bad Request\r\n\r\nBad Request", 39, 0);
+    LOG_400(addr);
+  } else {
+    ListCell *handler = server->handlers;
+    Response *response = NULL;
+
+    while (handler && !response) {
+      response = (*(HandlerP) handler->value)(req);
+      handler = handler->next;
+    }
+
+    if (!response) {
+      send(fd, "HTTP/1.0 404 Not Found\r\n\r\nNot Found!", 36, 0);
+      LOG_REQUEST(addr, METHODS[req->method], req->path, 404);
+    } else {
+      LOG_REQUEST(addr, METHODS[req->method], req->path,
+              response->status);
+
+      responseWrite(response, fd);
+      responseDel(response);
+    }
+
+    requestDel(req);
+  }
+
+done:
+  bsDel(buff);
   serverDelFd(server, fd);
   close(fd);
 }
